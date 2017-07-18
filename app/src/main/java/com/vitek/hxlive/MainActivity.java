@@ -38,6 +38,8 @@ import butterknife.ButterKnife;
 
 /**
  * 音视频项目主类
+ * http://www.imgeek.org/article/825308729
+ * Github: https://github.com/lzan13/VMChatDemoCall
  */
 public class MainActivity extends VMBaseActivity {
 
