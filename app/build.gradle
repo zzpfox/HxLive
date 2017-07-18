@@ -1,0 +1,67 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "26.0.0"
+
+    defaultConfig {
+        applicationId "com.vitek.hxlive"
+        minSdkVersion 21
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
+    }
+    // 编译配置
+    buildTypes {
+        debug {
+            // 简单粗暴解决多个库引用 jni 库出现 UnsatisfiedLinkError 文件错误问题
+            ndk {
+                abiFilters = ["armeabi-v7a", "x86"]
+            }
+            // 是否开启压缩
+            zipAlignEnabled false
+            // 是否开启混淆
+            minifyEnabled false
+            // 设置debug的签名
+            signingConfig signingConfigs.debug
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    sourceSets {
+        main {
+            // 设置Jni so文件路径 如果有jniLibs目录就不需要设置
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+}
+repositories {
+    flatDir {
+        dirs 'libs'
+    }
+}
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    testCompile 'junit:junit:4.12'
+
+    // ButterKnife 库
+    compile 'com.jakewharton:butterknife:8.6.0'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
+    // 引用自己封装的工具类库，GitHub：https://github.com/lzan13/VMLibraryManager
+    compile project(':vmtools')
+    compile 'com.hyphenate:hyphenate-sdk-lite:3.3.1'
+    compile(name: 'ucommon-android-sdk-1.0.0', ext: 'aar')
+    compile(name: 'ulive-android-sdk-1.5.1', ext: 'aar')
+    compile(name: 'uvod-android-sdk-1.5.8', ext: 'aar')
+    compile files('libs/hyphenatechat_3.3.2.jar')
+    compile files('libs/MiPush_SDK_Client_2_2_19.jar')
+}
