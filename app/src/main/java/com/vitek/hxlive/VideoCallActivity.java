@@ -87,14 +87,15 @@ public class VideoCallActivity extends CallActivity {
 
     private Dialog buyTimeDialog;
     private TextView tvDialogTitle;
+    private boolean needShowDialog = true;
+    private PreferencesUtil preferencesUtil;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_call);
-
+        preferencesUtil = new PreferencesUtil(this, "PlayTime");
         ButterKnife.bind(this);
-
         initView();
     }
 
@@ -109,11 +110,13 @@ public class VideoCallActivity extends CallActivity {
             answerCallFab.setVisibility(View.VISIBLE);
             rejectCallFab.setVisibility(View.VISIBLE);
             callStateView.setText(R.string.call_connected_is_incoming);
+            needShowDialog = true;
         } else {
             endCallFab.setVisibility(View.VISIBLE);
             answerCallFab.setVisibility(View.GONE);
             rejectCallFab.setVisibility(View.GONE);
             callStateView.setText(R.string.call_connecting);
+            needShowDialog = false;
         }
 
         micSwitch.setActivated(!CallManager.getInstance().isOpenMic());
@@ -565,11 +568,17 @@ public class VideoCallActivity extends CallActivity {
 
     private boolean checkTimeLong(int t) {
         Log.e("123", "时长 --- " + t);
-        if (t > 19 && t < 30) {
-            showChargeDialog(30 - t);
-        }
-        if (t == 30) {
-            return false;
+        if (needShowDialog) {
+            if (t > 19 && t < 30) {
+                showChargeDialog(30 - t);
+            }
+            if (t == 30) {
+                return false;
+            }
+        } else {
+            if (t > 19 && t < 30) {
+                ToastUtil.shortToast(getApplicationContext(), "对方还剩下" + (30 - t) + "秒与您通信。");
+            }
         }
         return true;
     }
@@ -682,5 +691,11 @@ public class VideoCallActivity extends CallActivity {
             oppositeSurface = null;
         }
         super.onFinish();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
     }
 }
