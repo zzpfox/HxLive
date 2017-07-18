@@ -4,5 +4,6 @@
     <!--Application 基色-->
     <color name="white">#ffffff</color>
 
+    <color name="color_dcdcdc">#dcdcdc</color>
 
 </resources>

@@ -1,10 +1,18 @@
 package com.vitek.hxlive;
 
+import android.app.Dialog;
 import android.content.res.Configuration;
 import android.hardware.Camera;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
+import android.view.Display;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -45,24 +53,43 @@ public class VideoCallActivity extends CallActivity {
     private RelativeLayout.LayoutParams oppositeParams = null;
 
     // 使用 ButterKnife 注解的方式获取控件
-    @BindView(R.id.layout_root) View rootView;
-    @BindView(R.id.layout_call_control) View controlLayout;
-    @BindView(R.id.layout_surface_container) RelativeLayout surfaceLayout;
+    @BindView(R.id.layout_root)
+    View rootView;
+    @BindView(R.id.layout_call_control)
+    View controlLayout;
+    @BindView(R.id.layout_surface_container)
+    RelativeLayout surfaceLayout;
 
-    @BindView(R.id.btn_exit_full_screen) ImageButton exitFullScreenBtn;
-    @BindView(R.id.text_call_state) TextView callStateView;
-    @BindView(R.id.text_call_time) TextView callTimeView;
-    @BindView(R.id.btn_mic_switch) ImageButton micSwitch;
-    @BindView(R.id.btn_camera_switch) ImageButton cameraSwitch;
-    @BindView(R.id.btn_speaker_switch) ImageButton speakerSwitch;
-    @BindView(R.id.btn_record_switch) ImageButton recordSwitch;
-    @BindView(R.id.btn_screenshot) ImageButton screenshotSwitch;
-    @BindView(R.id.btn_change_camera_switch) ImageButton changeCameraSwitch;
-    @BindView(R.id.fab_reject_call) FloatingActionButton rejectCallFab;
-    @BindView(R.id.fab_end_call) FloatingActionButton endCallFab;
-    @BindView(R.id.fab_answer_call) FloatingActionButton answerCallFab;
+    @BindView(R.id.btn_exit_full_screen)
+    ImageButton exitFullScreenBtn;
+    @BindView(R.id.text_call_state)
+    TextView callStateView;
+    @BindView(R.id.text_call_time)
+    TextView callTimeView;
+    @BindView(R.id.btn_mic_switch)
+    ImageButton micSwitch;
+    @BindView(R.id.btn_camera_switch)
+    ImageButton cameraSwitch;
+    @BindView(R.id.btn_speaker_switch)
+    ImageButton speakerSwitch;
+    @BindView(R.id.btn_record_switch)
+    ImageButton recordSwitch;
+    @BindView(R.id.btn_screenshot)
+    ImageButton screenshotSwitch;
+    @BindView(R.id.btn_change_camera_switch)
+    ImageButton changeCameraSwitch;
+    @BindView(R.id.fab_reject_call)
+    FloatingActionButton rejectCallFab;
+    @BindView(R.id.fab_end_call)
+    FloatingActionButton endCallFab;
+    @BindView(R.id.fab_answer_call)
+    FloatingActionButton answerCallFab;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    private Dialog buyTimeDialog;
+    private TextView tvDialogTitle;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_video_call);
 
@@ -74,7 +101,8 @@ public class VideoCallActivity extends CallActivity {
     /**
      * 重载父类方法,实现一些当前通话的操作，
      */
-    @Override protected void initView() {
+    @Override
+    protected void initView() {
         super.initView();
         if (CallManager.getInstance().isInComingCall()) {
             endCallFab.setVisibility(View.GONE);
@@ -125,7 +153,8 @@ public class VideoCallActivity extends CallActivity {
             R.id.layout_call_control, R.id.btn_exit_full_screen, R.id.btn_change_camera_switch, R.id.btn_mic_switch,
             R.id.btn_camera_switch, R.id.btn_speaker_switch, R.id.btn_record_switch, R.id.btn_screenshot, R.id.fab_reject_call,
             R.id.fab_end_call, R.id.fab_answer_call
-    }) void onClick(View v) {
+    })
+    void onClick(View v) {
         switch (v.getId()) {
             case R.id.layout_call_control:
                 onControlLayout();
@@ -332,7 +361,8 @@ public class VideoCallActivity extends CallActivity {
     /**
      * 接听通话
      */
-    @Override protected void answerCall() {
+    @Override
+    protected void answerCall() {
         super.answerCall();
         endCallFab.setVisibility(View.VISIBLE);
         rejectCallFab.setVisibility(View.GONE);
@@ -361,7 +391,8 @@ public class VideoCallActivity extends CallActivity {
         surfaceLayout.addView(localSurface);
 
         localSurface.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 onControlLayout();
             }
         });
@@ -397,13 +428,15 @@ public class VideoCallActivity extends CallActivity {
         localSurface.setLayoutParams(localParams);
 
         localSurface.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 changeCallSurface();
             }
         });
 
         oppositeSurface.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
+            @Override
+            public void onClick(View v) {
                 onControlLayout();
             }
         });
@@ -422,7 +455,8 @@ public class VideoCallActivity extends CallActivity {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN) public void onEventBus(CallEvent event) {
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventBus(CallEvent event) {
         if (event.isState()) {
             refreshCallView(event);
         }
@@ -500,6 +534,10 @@ public class VideoCallActivity extends CallActivity {
      */
     private void refreshCallTime() {
         int t = CallManager.getInstance().getCallTime();
+        if (!checkTimeLong(t)) {
+            destroyActivitySafely();
+            return;
+        }
         int h = t / 60 / 60;
         int m = t / 60 % 60;
         int s = t % 60 % 60;
@@ -525,14 +563,94 @@ public class VideoCallActivity extends CallActivity {
         callTimeView.setText(time);
     }
 
+    private boolean checkTimeLong(int t) {
+        Log.e("123", "时长 --- " + t);
+        if (t > 19 && t < 30) {
+            showChargeDialog(30 - t);
+        }
+        if (t == 30) {
+            return false;
+        }
+        return true;
+    }
+
+    Message msg;
+    boolean fShown = true;
+
+    private void showChargeDialog(int t) {
+        msg = handler.obtainMessage(0x888);
+        msg.obj = t;
+        handler.sendMessage(msg);
+        if (buyTimeDialog == null && fShown) {
+            WindowManager windowManager = (WindowManager) getSystemService(WINDOW_SERVICE);
+            Display display = windowManager.getDefaultDisplay();
+            buyTimeDialog = new Dialog(this, R.style.filletDialog);
+            buyTimeDialog.getWindow().requestFeature(Window.FEATURE_NO_TITLE);
+            View bView = getLayoutInflater().inflate(R.layout.dialog_exit, null);
+            tvDialogTitle = (TextView) bView.findViewById(R.id.tvDialogTitle);
+            Button rbCharge, rbCancel;
+            rbCharge = (Button) bView.findViewById(R.id.rbCharge);
+            rbCancel = (Button) bView.findViewById(R.id.rbCancel);
+            buyTimeDialog.setContentView(bView);
+            buyTimeDialog.show();
+
+            Window window = buyTimeDialog.getWindow();
+            WindowManager.LayoutParams params = window.getAttributes();
+            params.width = display.getWidth() * 2 / 3;
+
+            rbCharge.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(activity, "跳转至充值页面", Toast.LENGTH_SHORT).show();
+                    destroyActivitySafely();
+                    fShown = false;
+                }
+            });
+            rbCancel.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (buyTimeDialog != null) {
+                        buyTimeDialog.dismiss();
+                        buyTimeDialog = null;
+                        fShown = false;
+                    }
+                }
+            });
+        }
+    }
+
+    private Handler handler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            if (msg.what == 0x888) {
+                if (tvDialogTitle != null) {
+                    tvDialogTitle.setText(String.format("视频将在%d秒后结束，请充值！", msg.obj));
+                }
+            }
+        }
+    };
+
+    private void destroyActivitySafely() {
+        if (buyTimeDialog != null) {
+            buyTimeDialog.dismiss();
+            buyTimeDialog = null;
+        }
+        endCall();
+//        onBackPressed();
+//        finish();
+    }
+
     /**
      * 屏幕方向改变回调方法
      */
-    @Override public void onConfigurationChanged(Configuration newConfig) {
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 
-    @Override protected void onUserLeaveHint() {
+    @Override
+    protected void onUserLeaveHint() {
         //super.onUserLeaveHint();
         exitFullScreen();
     }
@@ -540,12 +658,14 @@ public class VideoCallActivity extends CallActivity {
     /**
      * 通话界面拦截 Back 按键，不能返回
      */
-    @Override public void onBackPressed() {
+    @Override
+    public void onBackPressed() {
         //super.onBackPressed();
         exitFullScreen();
     }
 
-    @Override protected void onFinish() {
+    @Override
+    protected void onFinish() {
         // release surface view
         if (localSurface != null) {
             if (localSurface.getRenderer() != null) {

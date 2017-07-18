@@ -223,7 +223,6 @@ public class MainActivity extends VMBaseActivity {
             }
 
             @Override public void onProgress(int i, String s) {
-
             }
         });
     }

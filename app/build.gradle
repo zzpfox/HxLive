@@ -49,19 +49,19 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support.constraint:constraint-layout:1.0.2'
-    testCompile 'junit:junit:4.12'
 
     // ButterKnife 库
-    compile 'com.jakewharton:butterknife:8.6.0'
-    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
     // 引用自己封装的工具类库，GitHub：https://github.com/lzan13/VMLibraryManager
     compile project(':vmtools')
-    compile 'com.hyphenate:hyphenate-sdk-lite:3.3.1'
     compile(name: 'ucommon-android-sdk-1.0.0', ext: 'aar')
     compile(name: 'ulive-android-sdk-1.5.1', ext: 'aar')
     compile(name: 'uvod-android-sdk-1.5.8', ext: 'aar')
     compile files('libs/hyphenatechat_3.3.2.jar')
     compile files('libs/MiPush_SDK_Client_2_2_19.jar')
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    compile 'com.jakewharton:butterknife:8.6.0'
+    compile 'com.hyphenate:hyphenate-sdk-lite:3.3.1'
+    testCompile 'junit:junit:4.12'
+    annotationProcessor 'com.jakewharton:butterknife-compiler:8.6.0'
 }
